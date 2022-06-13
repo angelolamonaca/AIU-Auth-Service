@@ -24,6 +24,7 @@ import static com.aiu.aiuauthservice.utility.JWTokenProvider.decodeJWT;
 import static com.aiu.aiuauthservice.utility.JWTokenProvider.generateTokens;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -60,6 +61,25 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/validatetoken")
+    public void validateToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String authorizationHeader = request.getHeader(AUTHORIZATION);
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            try {
+                String token = authorizationHeader.substring("Bearer ".length());
+                decodeJWT(token);
+                response.setStatus(ACCEPTED.value());
+            } catch (Exception exception) {
+                log.error("Error validating tokens in: {}", exception.getMessage());
+                response.setHeader("error", exception.getMessage());
+                response.sendError(FORBIDDEN.value());
+            }
+        } else {
+            throw new RuntimeException("Refresh token is missing or malformed");
+        }
+
+    }
+
     @GetMapping("/refreshtoken")
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String authorizationHeader = request.getHeader(AUTHORIZATION);
@@ -73,7 +93,7 @@ public class AuthController {
                 response.setContentType(APPLICATION_JSON_VALUE);
                 new ObjectMapper().writeValue(response.getOutputStream(), tokens);
             } catch (Exception exception) {
-                log.error("Error logging in: {}", exception.getMessage());
+                log.error("Error refreshing tokens in: {}", exception.getMessage());
                 response.setHeader("error", exception.getMessage());
                 response.sendError(FORBIDDEN.value());
             }
