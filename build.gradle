@@ -34,6 +34,8 @@ dependencies {
 
 	implementation 'org.passay:passay:1.6.1'
 
+	implementation 'org.apache.commons:commons-lang3:3.12.0'
+
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	compileOnly 'org.projectlombok:lombok:1.18.24'
 

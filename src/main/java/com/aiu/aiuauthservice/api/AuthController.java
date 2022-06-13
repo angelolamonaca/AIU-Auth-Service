@@ -22,6 +22,7 @@ import java.util.Map;
 
 import static com.aiu.aiuauthservice.utility.JWTokenProvider.decodeJWT;
 import static com.aiu.aiuauthservice.utility.JWTokenProvider.generateTokens;
+import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -36,18 +37,27 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
-        List<String> passwordValidationResult = new PasswordValidator().validate(user.getPassword());
-        if (!passwordValidationResult.isEmpty()) {
+        try {
+            List<String> passwordValidationResult = new PasswordValidator().validate(user.getPassword());
+            if (!passwordValidationResult.isEmpty()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(passwordValidationResult);
+            }
+            URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/save").toUriString());
+            User newUser = userService.saveUser(user);
+            roleService.addRoleToUser(user.getUsername(), RoleType.ROLE_USER.name());
+            return ResponseEntity
+                    .created(uri)
+                    .body(newUser);
+
+        } catch (Exception e) {
+            String errorMessage = getRootCauseMessage(e);
+            log.error("Error registering: {}", errorMessage);
             return ResponseEntity
                     .badRequest()
-                    .body(passwordValidationResult);
+                    .body(errorMessage);
         }
-        URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/save").toUriString());
-        User newUser = userService.saveUser(user);
-        roleService.addRoleToUser(user.getUsername(), RoleType.ROLE_USER.name());
-        return ResponseEntity
-                .created(uri)
-                .body(newUser);
     }
 
     @GetMapping("/refreshtoken")
