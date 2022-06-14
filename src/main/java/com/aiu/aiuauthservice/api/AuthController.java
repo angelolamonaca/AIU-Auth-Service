@@ -75,7 +75,7 @@ public class AuthController {
                 response.sendError(FORBIDDEN.value());
             }
         } else {
-            throw new RuntimeException("Refresh token is missing or malformed");
+            throw new RuntimeException("Error on token validating: Token is missing or malformed");
         }
 
     }
