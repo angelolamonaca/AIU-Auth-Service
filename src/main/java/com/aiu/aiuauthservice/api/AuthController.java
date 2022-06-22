@@ -67,7 +67,9 @@ public class AuthController {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             try {
                 String token = authorizationHeader.substring("Bearer ".length());
-                decodeJWT(token);
+                DecodedJWT jwt = decodeJWT(token);
+                String username = jwt.getSubject();
+                response.setHeader("email", username);
                 response.setStatus(ACCEPTED.value());
             } catch (Exception exception) {
                 log.error("Error validating tokens in: {}", exception.getMessage());
