@@ -10,6 +10,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 import java.util.ArrayList;
 
@@ -42,6 +43,16 @@ public class AiuAuthServiceApplication {
             roleService.addRoleToUser("itachi@test.com", RoleType.ROLE_USER.name());
             roleService.addRoleToUser("itachi@test.com", RoleType.ROLE_SUPER_ADMIN.name());
         };
+    }
+
+    @Bean
+    public CommonsRequestLoggingFilter requestLoggingFilter() {
+        CommonsRequestLoggingFilter loggingFilter = new CommonsRequestLoggingFilter();
+        loggingFilter.setIncludeClientInfo(true);
+        loggingFilter.setIncludeQueryString(true);
+        loggingFilter.setIncludePayload(true);
+        loggingFilter.setIncludeHeaders(false);
+        return loggingFilter;
     }
 
 }
